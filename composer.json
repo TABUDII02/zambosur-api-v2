@@ -1,14 +1,13 @@
 {
     "name": "zambosur/backend",
     "description": "ZamboSur Crafts API",
-    "type": "project",
     "require": {
-        "php": ">=8.0"
+        "php": ">=8.0",
+        "ext-mysqli": "*"
     },
     "config": {
-        "process-timeout": 0,
-        "allow-plugins": {
-            "php-http/discovery": true
+        "platform": {
+            "php": "8.2.0"
         }
     }
 }
