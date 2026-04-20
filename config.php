@@ -25,8 +25,6 @@ function getDBConnection() {
     return $conn;
 }
 
-// Set headers for JSON API
-header('Content-Type: application/json');
 
 // Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
