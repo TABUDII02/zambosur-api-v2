@@ -1,9 +1,11 @@
 <?php
 // backend/auth.php
-header("Cross-Origin-Opener-Policy: same-origin-allow-popups");
-header("Access-Control-Allow-Origin: *");
+
+// 1. Remove the wildcard and use your specific domain
+header("Access-Control-Allow-Origin: https://zambosur-crafts.onrender.com");
+header("Access-Control-Allow-Credentials: true"); // <--- REQUIRED for cookies
 header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -11,10 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 function handleSocialLogin($data) {
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-
+   if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_samesite', 'None');
+    ini_set('session.cookie_secure', 'True'); 
+    session_start();
+}
     $email = $data['email'] ?? '';
     $name = $data['name'] ?? 'Valued Customer';
 
