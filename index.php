@@ -1,28 +1,32 @@
 <?php
-/** ZamboSur Crafts - CORS Fix **/
+/** ZamboSur Crafts - Master API Controller **/
 
-// 1. Remove any duplicate headers added by Apache/Render
+// 1. Clean up headers to prevent duplicates
 header_remove("Access-Control-Allow-Origin");
 header_remove("Access-Control-Allow-Credentials");
 
-// 2. Set the secure headers manually
+// 2. Set strict CORS for your Render URL
 header("Access-Control-Allow-Origin: https://zambosur-crafts.onrender.com");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, ngrok-skip-browser-warning");
 
-// 3. IMPORTANT: Handle the "Preflight" OPTIONS request
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+// 3. Handle OPTIONS Preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
-    exit; 
+    exit;
 }
 
-// 4. Session and Content Type
+// 4. Secure Session & JSON Header
 ini_set('session.cookie_samesite', 'None');
 ini_set('session.cookie_secure', 'True'); 
 session_start();
 header('Content-Type: application/json');
 
+// 5. FIX FOR 400 ERROR: Parse JSON Input
+// This ensures $data is available even if $_POST is empty
+$input = file_get_contents('php://input');
+$data = json_decode($input, true);
 
 require_once 'config.php';
 $conn = getDBConnection();
