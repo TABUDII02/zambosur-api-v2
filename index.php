@@ -1,23 +1,28 @@
 <?php
-
 /** ZamboSur Crafts PHP Backend API **/
+
+// 1. Set Session Cookie Parameters FIRST
 ini_set('session.cookie_samesite', 'None');
 ini_set('session.cookie_secure', 'True'); 
 session_start();
 
-// 1. CHANGE THIS: Replace '*' with your actual frontend URL
-header("Access-Control-Allow-Origin: https://zambosur-crafts.onrender.com");
+// 2. Define the exact Frontend URL
+$frontend_url = "https://zambosur-crafts.onrender.com";
 
-// 2. ADD THIS: This allows the browser to actually send the session cookie
+// 3. Clear any existing headers and set the correct ones
+header("Access-Control-Allow-Origin: $frontend_url");
 header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, ngrok-skip-browser-warning");
 
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization, ngrok-skip-browser-warning");
-
+// 4. Handle the OPTIONS request immediately
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(200); // Good practice to send a 200 status
+    http_response_code(200);
     exit; 
 }
+
+// 5. Tell the browser the response is always JSON
+header('Content-Type: application/json');
 
 
 require_once 'config.php';
