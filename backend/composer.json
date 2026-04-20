@@ -1,6 +1,5 @@
 {
-    "name": "zambosur/crafts",
-    "description": "ZamboSur Crafts Backend",
+    "name": "zambosur/backend",
     "require": {
         "php": ">=8.0"
     }
