@@ -59,7 +59,8 @@ $path = trim($path, '/');
 
 // 3. Create Segments for Routing
 $segments = explode('/', $path);
-
+$path = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+$segments = explode('/', $path);
 
 /// 4. THE ROUTER
 
@@ -314,27 +315,25 @@ if (isset($segments[0]) && $segments[0] === 'user') {
         exit;
     }
 }
-// --- PUBLIC PRODUCT ROUTES ---
+
+
 if (isset($segments[0]) && $segments[0] === 'products') {
     
-    // 1. Handle "products/best-sellers"
+    // 1. Specific check FIRST
     if (isset($segments[1]) && $segments[1] === 'best-sellers') {
-        getBestSellers();
+        getBestSellers(); // Make sure this function ends with exit;
         exit;
     }
 
-    // 2. Handle "products/{id}" (e.g., products/91)
+    // 2. ID check SECOND
     if (isset($segments[1]) && is_numeric($segments[1])) {
-        $productId = intval($segments[1]);
-        getProductById($productId);
+        getProductById((int)$segments[1]);
         exit;
     }
 
-    // 3. Handle "products" (all products)
-    if (!isset($segments[1])) {
-        getAllProducts();
-        exit;
-    }
+    // 3. General fallback LAST
+    getAllProducts();
+    exit;
 }
 // --- CHATBOT ROUTE ---
 if (isset($segments[0]) && $segments[0] === 'chat') {
