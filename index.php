@@ -1224,21 +1224,22 @@ function handleRemoveAction($table) {
 }
 
 function getUserCart() {
-   if (ob_get_length()) {
-    ob_clean();
-}
-header('Content-Type: application/json');
-echo json_encode($response);
-exit; // Always exit after sending JSON to prevent extra text
+    // 1. Get Session and Connection FIRST
     $id_from_session = $_SESSION['user_id'] ?? null;
     $conn = getDBConnection();
 
-    // Change 'user_id' to 'customer_id' in the WHERE clause
+    if (!$id_from_session) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'User not logged in']);
+        exit;
+    }
+
+    // 2. Run the Query
     $sql = "SELECT c.id AS cart_id, c.product_id, c.quantity, 
                    p.name AS product_name, p.price, p.image_url 
             FROM cart c 
             LEFT JOIN products p ON c.product_id = p.id 
-            WHERE c.customer_id = ?"; // <-- CHECK THIS NAME
+            WHERE c.customer_id = ?"; 
             
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id_from_session);
@@ -1250,9 +1251,17 @@ exit; // Always exit after sending JSON to prevent extra text
         $items[] = $row;
     }
 
+    // 3. NOW clean the buffer and send the response
+    if (ob_get_length()) {
+        ob_clean();
+    }
+    
+    header('Content-Type: application/json');
     echo json_encode(['success' => true, 'items' => $items]);
+    
+    // 4. Close and Exit
     $conn->close();
-    exit;
+    exit; 
 }
 
 function createOrder() {
