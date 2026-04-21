@@ -6,11 +6,20 @@
 require_once 'config.php';
 
 /**
- * Start admin session safely
+ * Start admin session safely with Cross-Site (CORS) support
  */
 function startAdminSession() {
     if (session_status() === PHP_SESSION_NONE) {
-        // Set secure session cookie parameters if possible
+        // REQUIRED for Render/Cross-Domain sessions
+        session_set_cookie_params([
+            'lifetime' => 86400, // 24 hours
+            'path' => '/',
+            // This allows the cookie to be sent from the API to the Frontend
+            'samesite' => 'None', 
+            'secure' => true,     // Must be true if samesite is None
+            'httponly' => true
+        ]);
+        
         session_start();
     }
 }
@@ -21,14 +30,12 @@ function startAdminSession() {
  */
 function isAdminLoggedIn() {
     startAdminSession();
+    // Debugging: If you still get 401, you can temporarily error_log($_SESSION)
     return isset($_SESSION['admin_id']) && !empty($_SESSION['admin_id']);
 }
 
 /**
  * Login admin
- * @param string $username
- * @param string $password
- * @return array
  */
 function adminLogin($username, $password) {
     startAdminSession();
@@ -38,7 +45,6 @@ function adminLogin($username, $password) {
     }
     
     $conn = getDBConnection();
-    // Force UTF-8 to ensure symbols in hashes don't get mangled
     $conn->set_charset("utf8mb4");
 
     $stmt = $conn->prepare("SELECT id, username, password_hash FROM admins WHERE username = ?");
@@ -47,13 +53,16 @@ function adminLogin($username, $password) {
     $result = $stmt->get_result();
     
     if ($row = $result->fetch_assoc()) {
-        // Use trim to remove any accidental whitespace from the database or the input
         $inputPassword = trim($password);
         $hashedPassword = trim($row['password_hash']);
 
         if (password_verify($inputPassword, $hashedPassword)) {
+            // Regeneration prevents session fixation attacks
+            session_regenerate_id(true); 
+            
             $_SESSION['admin_id'] = $row['id'];
             $_SESSION['admin_username'] = $row['username'];
+            
             $stmt->close();
             $conn->close();
             return ['success' => true, 'message' => 'Login successful'];
@@ -74,7 +83,14 @@ function adminLogin($username, $password) {
  */
 function adminLogout() {
     startAdminSession();
-    $_SESSION = array(); // Clear session variables
+    $_SESSION = array(); 
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
+    }
     session_destroy();
     return ['success' => true, 'message' => 'Logged out successfully'];
 }
