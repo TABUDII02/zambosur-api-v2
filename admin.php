@@ -34,9 +34,12 @@ $data = json_decode($input, true) ?? [];
 // --- 4. Public Endpoints ---
 // Use strpos to be more flexible with the path
 if ($method === 'POST' && (strpos($path, 'login') !== false)) {
+    // Clear any previous output buffers
+    if (ob_get_length()) ob_clean(); 
+    
     header('Content-Type: application/json');
     echo json_encode(adminLogin($data['username'] ?? '', $data['password'] ?? ''));
-    exit; 
+    exit; // VERY IMPORTANT: Stops the script immediately
 }
 
 // --- 5. Protected Admin Routes ---
