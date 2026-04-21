@@ -1454,45 +1454,60 @@ function updateCustomerProfile() {
 }
 
 function saveCustomerAddress() {
-    ob_clean();
+    // FIX 1: Only clean buffer if it's not empty to avoid the "Failed to delete" notice
+    if (ob_get_length()) {
+        ob_clean();
+    }
+    
     header('Content-Type: application/json');
 
     if (!isset($_SESSION['user_id'])) {
         echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-        return;
+        exit; // Changed return to exit to stop execution
     }
 
     $data = json_decode(file_get_contents('php://input'), true);
     $user_id = $_SESSION['user_id'];
     $conn = getDBConnection();
 
-    // 1. Reset defaults if this new one is set as default
-    if ($data['is_default'] == 1) {
+    // FIX 2: Use null coalescing (??) for every $data field to prevent "Undefined Index" notices
+    $is_default = $data['is_default'] ?? 0;
+
+    if ($is_default == 1) {
         $reset = $conn->prepare("UPDATE customer_addresses SET is_default = 0 WHERE customer_id = ?");
         $reset->bind_param("i", $user_id);
         $reset->execute();
     }
 
-    // 2. Comprehensive INSERT statement
     $sql = "INSERT INTO customer_addresses 
             (customer_id, label, receiver_name, phone, street, barangay, city, province, zip_code, address_type, is_default) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $stmt = $conn->prepare($sql);
     
-    // "isssssssssi" means: 1 int, 9 strings, 1 int
+    // FIX 3: Map data safely to variables before binding
+    $label    = $data['label'] ?? 'Home';
+    $receiver = $data['receiver'] ?? '';
+    $phone    = $data['phone'] ?? '';
+    $street   = $data['street'] ?? '';
+    $barangay = $data['barangay'] ?? '';
+    $city     = $data['city'] ?? '';
+    $province = $data['province'] ?? '';
+    $zip      = $data['zip'] ?? '';
+    $type     = $data['address_type'] ?? 'Home';
+
     $stmt->bind_param("isssssssssi", 
         $user_id, 
-        $data['label'], 
-        $data['receiver'], 
-        $data['phone'], 
-        $data['street'], 
-        $data['barangay'], 
-        $data['city'], 
-        $data['province'], 
-        $data['zip'], 
-        $data['address_type'], 
-        $data['is_default']
+        $label, 
+        $receiver, 
+        $phone, 
+        $street, 
+        $barangay, 
+        $city, 
+        $province, 
+        $zip, 
+        $type, 
+        $is_default
     );
 
     if ($stmt->execute()) {
