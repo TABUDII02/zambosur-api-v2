@@ -47,6 +47,22 @@ if (strpos($path, 'admin') === 0) {
     
     header('Content-Type: application/json'); // Set JSON header for all admin routes
 
+   if (strpos($path, 'admin') === 0) {
+    header('Content-Type: application/json');
+
+    // 1. PUBLIC ADMIN ROUTES (No login required to attempt these)
+    if ($path === 'admin/login') {
+        // Your login logic here
+        exit;
+    }
+
+    // 2. LOGOUT ROUTE (Must be reachable to clear the session)
+    if ($path === 'admin/logout') {
+        echo json_encode(adminLogout());
+        exit;
+    }
+
+    // 3. PROTECTED ROUTES (Everything below this requires a valid session)
     if (!isAdminLoggedIn()) {
         http_response_code(401);
         echo json_encode(['error' => 'Unauthorized. Please log in again.']);
@@ -87,7 +103,7 @@ if (strpos($path, 'admin') === 0) {
         exit;
     }
 
-    // If we are in 'admin' but no sub-route matched
+    // Default Admin 404
     http_response_code(404);
     echo json_encode(['error' => 'Admin sub-endpoint not found', 'path_debug' => $path]);
     exit;
