@@ -10,20 +10,19 @@ require_once 'config.php';
  */
 function startAdminSession() {
     if (session_status() === PHP_SESSION_NONE) {
-        // REQUIRED for Render/Cross-Domain sessions
         session_set_cookie_params([
-            'lifetime' => 86400, // 24 hours
+            'lifetime' => 86400,
             'path' => '/',
-            // This allows the cookie to be sent from the API to the Frontend
+            // ADD THIS LINE: Use your exact API hostname
+            'domain' => 'zambosur-api-v2.onrender.com', 
             'samesite' => 'None', 
-            'secure' => true,     // Must be true if samesite is None
+            'secure' => true,
             'httponly' => true
         ]);
         
         session_start();
     }
 }
-
 /**
  * Check if user is logged in as admin
  * @return bool
