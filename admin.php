@@ -21,48 +21,46 @@ require_once 'config.php';
 require_once 'admin-auth.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
-$path = $_SERVER['PATH_INFO'] ?? '';
+
+// BETTER PATH DETECTION: Handles Render's URL quirks
+$path = $_SERVER['PATH_INFO'] ?? parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+// Remove the base subdirectory if it exists (e.g., /backend/index.php/admin -> admin)
+$path = str_replace(['/index.php', '/admin.php', '/backend'], '', $path);
 $path = trim($path, '/'); 
+
 $input = file_get_contents('php://input');
 $data = json_decode($input, true) ?? [];
 
 // --- 4. Public Endpoints ---
-// This handles BOTH "admin/login" and "login"
-if ($method === 'POST' && ($path === 'admin/login' || $path === 'login')) {
+// Use strpos to be more flexible with the path
+if ($method === 'POST' && (strpos($path, 'login') !== false)) {
     header('Content-Type: application/json');
     echo json_encode(adminLogin($data['username'] ?? '', $data['password'] ?? ''));
-    exit; // STOP HERE so index.php doesn't run
+    exit; 
 }
 
 // --- 5. Protected Admin Routes ---
 if (strpos($path, 'admin') === 0) {
     
-    // Check login
+    header('Content-Type: application/json'); // Set JSON header for all admin routes
+
     if (!isAdminLoggedIn()) {
         http_response_code(401);
-        header('Content-Type: application/json');
         echo json_encode(['error' => 'Unauthorized. Please log in again.']);
         exit;
     }
 
     $segments = explode('/', $path);
 
-    // If the path is JUST "admin" or "admin/", show a default message or error
-    if (count($segments) < 2) {
-        http_response_code(400);
-        echo json_encode(['error' => 'No admin sub-endpoint specified']);
-        exit;
-    }
-
     // ROUTE: admin/products
-    if ($segments[1] === 'products') {
+    if (isset($segments[1]) && $segments[1] === 'products') {
         handleProducts($path, $method, $data);
         exit;
     } 
 
     // ROUTE: admin/orders
-    if ($segments[1] === 'orders') {
-        if ($path === 'admin/orders/update') {
+    if (isset($segments[1]) && $segments[1] === 'orders') {
+        if ($path === 'admin/orders/update' || (isset($segments[2]) && $segments[2] === 'update')) {
             updateOrderStatus($data['order_id'] ?? null, $data);
         } else {
             getAdminOrders();
@@ -72,7 +70,7 @@ if (strpos($path, 'admin') === 0) {
 
     // ROUTE: admin/customers
     if (isset($segments[1]) && $segments[1] === 'customers') {
-        if ($path === 'admin/customers/delete') {
+        if (strpos($path, 'delete') !== false) {
             deleteCustomer($data['id'] ?? null);
         } else {
             getAdminCustomers();
@@ -85,11 +83,19 @@ if (strpos($path, 'admin') === 0) {
         getAdminCategories();
         exit;
     }
+
+    // If we are in 'admin' but no sub-route matched
+    http_response_code(404);
+    echo json_encode(['error' => 'Admin sub-endpoint not found', 'path_debug' => $path]);
+    exit;
 }
 
-// Default 404
+// --- FINAL FALLBACK ---
+// If it's not an admin route and reaches here, it's a true 404
 http_response_code(404);
-echo json_encode(['error' => 'Endpoint not found: ' . $path]);
+header('Content-Type: application/json');
+echo json_encode(['error' => 'Endpoint not found', 'path_debug' => $path]);
+exit;
 
 // --- 6. Route Handler Functions ---
 
