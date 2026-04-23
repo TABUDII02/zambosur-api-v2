@@ -334,21 +334,29 @@ if (isset($segments[0]) && $segments[0] === 'user') {
 }
 
 
-if (isset($segments[0]) && $segments[0] === 'products') {
-    
-    // 1. Specific check FIRST
-    if (isset($segments[1]) && $segments[1] === 'best-sellers') {
-        getBestSellers(); // Make sure this function ends with exit;
+// --- 6. PUBLIC PRODUCT ROUTES ---
+// This finds 'products' anywhere in the URL, making it much more stable
+$prodKey = array_search('products', $segments);
+
+if ($prodKey !== false) {
+    header('Content-Type: application/json');
+
+    // The 'action' is whatever comes AFTER 'products' in the URL
+    $action = isset($segments[$prodKey + 1]) ? $segments[$prodKey + 1] : null;
+
+    // Route: products/best-sellers
+    if ($action === 'best-sellers') {
+        getBestSellers(); 
         exit;
     }
 
-    // 2. ID check SECOND
-    if (isset($segments[1]) && is_numeric($segments[1])) {
-        getProductById((int)$segments[1]);
+    // Route: products/123 (Specific ID)
+    if (is_numeric($action)) {
+        getProductById((int)$action);
         exit;
     }
 
-    // 3. General fallback LAST
+    // Route: products (All)
     getAllProducts();
     exit;
 }
