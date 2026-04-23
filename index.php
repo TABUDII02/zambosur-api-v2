@@ -157,7 +157,8 @@ if (isset($segments[0]) && $segments[0] === 'auth') {
 
     if (isset($segments[1]) && $segments[1] === 'login') {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            handleSignin(); // This must match the name of your PHP function
+            // Pass the $data array (which contains your email/pass) to the function
+            handleSignin($data); 
         } else {
             echo json_encode(['error' => 'Method not allowed']);
         }
