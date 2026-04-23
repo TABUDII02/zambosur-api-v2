@@ -61,15 +61,27 @@ $data = json_decode($input, true) ?? [];
 
 // --- 2. Reliable Path Detection ---
 $request_uri = $_SERVER['REQUEST_URI'];
-$script_name = $_SERVER['SCRIPT_NAME'];
+$script_name = $_SERVER['SCRIPT_NAME']; // e.g., /index.php
 
-// Remove the script name and any subfolders (like /api or /backend)
-$path = str_replace([$script_name, dirname($script_name)], '', $request_uri);
-$path = explode('?', $path)[0]; // Remove query strings
+// 1. Get the raw path and remove query strings
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// 2. Identify the "Base Folder" (e.g., /api or /backend)
+$base_folder = dirname($script_name);
+
+// 3. Remove the base folder only if it's not just a slash
+if ($base_folder !== DIRECTORY_SEPARATOR && $base_folder !== '.') {
+    $path = str_replace($base_folder, '', $path);
+}
+
+// 4. Remove the actual script filename if it's in the URL
+$path = str_replace(basename($script_name), '', $path);
+
+// 5. Clean up outer slashes but KEEP the ones in the middle
 $path = trim($path, '/');
 
-// Create the clean segments
-$segments = explode('/', $path);
+// 6. Create the clean segments
+$segments = ($path === '') ? [] : explode('/', $path);
 
 /// 4. THE ROUTER
 
