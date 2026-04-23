@@ -94,11 +94,7 @@ if (strpos($path, 'admin') === 0) {
     }
 }
 
-// --- FINAL FALLBACK ---
-http_response_code(404);
-header('Content-Type: application/json');
-echo json_encode(['error' => 'Endpoint not found', 'path_debug' => $path]);
-exit;
+
 // --- 6. Route Handler Functions ---
 
 function handleProducts($path, $method, $data) {
