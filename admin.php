@@ -92,6 +92,7 @@ if (strpos($path, 'admin') === 0) {
         getAdminCategories();
         exit;
     }
+}
 
 // --- FINAL FALLBACK ---
 http_response_code(404);
