@@ -955,11 +955,14 @@ function handleSignup() {
 /**
  * Handle Customer Login (Sign In)
  */
-function handleSignin($data) { // <--- Accept $data here
+function handleSignin($data) {
+    // MIRROR TEST: If the login alert shows your email/pass, the backend is perfect.
+    die(json_encode(['received_from_router' => $data])); 
 
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
+    // ...
 
     // REMOVE the file_get_contents line from inside here!
     
