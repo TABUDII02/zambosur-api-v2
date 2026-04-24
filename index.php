@@ -88,10 +88,19 @@ $segments = ($path === '') ? [] : explode('/', $path);
 
 // --- ADMIN ROUTES ---
 if (isset($segments[0]) && trim($segments[0]) === 'admin') {
+    
+    // 1. Handle Admin Login FIRST
+    if (isset($segments[1]) && $segments[1] === 'login') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Use the data specifically for adminLogin
+            $res = adminLogin($data['username'] ?? '', $data['password'] ?? '');
+            echo json_encode($res);
+        }
+        exit; // Stop everything here!
+    }
 
-    // 🔥 ADD THIS FIREWALL: 
-    // Except for the login path, everything in 'admin' must be blocked
-    if ($segments[1] !== 'login' && !isAdminLoggedIn()) {
+    // 2. The Firewall for all other admin routes
+    if (!isAdminLoggedIn()) {
         http_response_code(401);
         echo json_encode(['error' => 'Unauthorized']);
         exit;
