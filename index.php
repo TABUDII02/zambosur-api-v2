@@ -86,6 +86,54 @@ $segments = ($path === '') ? [] : explode('/', $path);
 /// 4. THE ROUTER
 
 
+// --- CUSTOMER AUTH ROUTES ---
+$data = json_decode(file_get_contents("php://input"), true) ?? [];
+if (isset($segments[0]) && $segments[0] === 'auth') {
+
+
+    // 1. Handle Signup (The missing part)
+    if (isset($segments[1]) && $segments[1] === 'signup') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            handleSignup($data); 
+        } else {
+            echo json_encode(['error' => 'Method not allowed']);
+        }
+        exit;
+    }
+
+    if (isset($segments[1]) && $segments[1] === 'login') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Pass the $data array (which contains your email/pass) to the function
+            handleSignin($data); 
+        } else {
+            echo json_encode(['error' => 'Method not allowed']);
+        }
+        exit;
+    }
+
+    // Handle Social Login
+    if (isset($segments[1]) && $segments[1] === 'social-login') {
+        handleSocialLogin($data); 
+        exit;
+    }
+
+    // ADD THIS: Handle Profile Fetching
+    if (isset($segments[1]) && $segments[1] === 'profile') {
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            getCustomerProfile(); // This is the function we fixed earlier
+        }
+        exit;
+    }
+
+    // Handle Logout
+    if (isset($segments[1]) && $segments[1] === 'logout') {
+        session_start();
+        session_destroy();
+        echo json_encode(['success' => true]);
+        exit;
+    }
+}
+
 // --- ADMIN ROUTES ---
 if (isset($segments[0]) && trim($segments[0]) === 'admin') {
     
@@ -149,53 +197,6 @@ if (isset($segments[0]) && trim($segments[0]) === 'admin') {
     exit;
 }
 
-// --- CUSTOMER AUTH ROUTES ---
-$data = json_decode(file_get_contents("php://input"), true) ?? [];
-if (isset($segments[0]) && $segments[0] === 'auth') {
-
-
-    // 1. Handle Signup (The missing part)
-    if (isset($segments[1]) && $segments[1] === 'signup') {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            handleSignup($data); 
-        } else {
-            echo json_encode(['error' => 'Method not allowed']);
-        }
-        exit;
-    }
-
-    if (isset($segments[1]) && $segments[1] === 'login') {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Pass the $data array (which contains your email/pass) to the function
-            handleSignin($data); 
-        } else {
-            echo json_encode(['error' => 'Method not allowed']);
-        }
-        exit;
-    }
-
-    // Handle Social Login
-    if (isset($segments[1]) && $segments[1] === 'social-login') {
-        handleSocialLogin($data); 
-        exit;
-    }
-
-    // ADD THIS: Handle Profile Fetching
-    if (isset($segments[1]) && $segments[1] === 'profile') {
-        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-            getCustomerProfile(); // This is the function we fixed earlier
-        }
-        exit;
-    }
-
-    // Handle Logout
-    if (isset($segments[1]) && $segments[1] === 'logout') {
-        session_start();
-        session_destroy();
-        echo json_encode(['success' => true]);
-        exit;
-    }
-}
 
 // --- USER ACTIONS (Cart, Wishlist, Saved Items) ---
 if (isset($segments[0]) && $segments[0] === 'user') {
