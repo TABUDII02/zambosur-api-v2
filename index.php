@@ -1882,7 +1882,7 @@ function deleteCustomer() {
 }
 
 function handleChatbotResponse($message) {
-    global $conn;
+    $conn = getDBConnection();
     
     // Start session to check if user is logged in
     if (session_status() === PHP_SESSION_NONE) {
@@ -1894,8 +1894,8 @@ function handleChatbotResponse($message) {
 
     // 1. Check Login Status
     // Replace 'customer_id' with whatever key you use in your login script
-    $isLoggedIn = isset($_SESSION['customer_id']);
-    $customerName = $isLoggedIn ? $_SESSION['first_name'] : "";
+    $isLoggedIn = isset($_SESSION['user_id']);
+    $customerName = $isLoggedIn ? ($_SESSION['first_name'] ?? "Customer") : "";
 
     // 2. Dynamic Login Instruction
     $loginInstruction = $isLoggedIn 
