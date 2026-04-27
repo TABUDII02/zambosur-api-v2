@@ -86,11 +86,13 @@ $segments = ($path === '') ? [] : explode('/', $path);
 /// 4. THE ROUTER
 // --- 1. ADMIN ROUTES ---
 // This ONLY executes if the first part of the URL is 'admin'
-/*if (isset($segments[0]) && trim($segments[0]) === 'admin') {
-    
+if (isset($segments[0]) && trim($segments[0]) === 'admin') {
+    require_once 'admin.php';
     // Explicit Admin Login Handler
     if (isset($segments[1]) && $segments[1] === 'login') {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+           $data = json_decode(file_get_contents("php://input"), true) ?? [];
+            require_once 'admin-auth.php';
             // This is the ONLY place this specific error message should come from
             $res = adminLogin($data['username'] ?? '', $data['password'] ?? '');
             echo json_encode($res);
@@ -146,7 +148,7 @@ $segments = ($path === '') ? [] : explode('/', $path);
     header('Content-Type: application/json');
     echo json_encode(["error" => "Endpoint not found: admin/" . $module]);
     exit;
-}*/
+}
 
 // --- CUSTOMER AUTH ROUTES ---
 $data = json_decode(file_get_contents("php://input"), true) ?? [];
