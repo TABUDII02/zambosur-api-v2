@@ -1967,3 +1967,53 @@ function handleChatbotResponse($message) {
     echo json_encode(['reply' => $reply]);
     exit;
 }
+
+function getAllProducts() {
+    $conn = getDBConnection();
+    
+    $sql = "SELECT p.*, c.name AS category_name 
+            FROM products p 
+            JOIN categories c ON p.category_id = c.id";
+    
+    $result = $conn->query($sql);
+    
+    if ($result) {
+        $products = [];
+        while ($row = $result->fetch_assoc()) {
+            $products[] = $row;
+        }
+        echo json_encode($products);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => $conn->error]);
+    }
+    
+    $conn->close();
+}
+
+/**
+ * Get Best Seller Products
+ */
+function getBestSellers() {
+    $conn = getDBConnection();
+    
+    // Using 1 instead of TRUE is safer for MySQL tinyint columns
+    $sql = "SELECT * FROM products WHERE is_best_seller = 1";
+    $result = $conn->query($sql);
+    
+    header('Content-Type: application/json'); // Tell the browser it's JSON
+
+    if ($result) {
+        $products = [];
+        while ($row = $result->fetch_assoc()) {
+            $products[] = $row;
+        }
+        echo json_encode($products);
+    } else {
+        http_response_code(500);
+        echo json_encode(['error' => $conn->error]);
+    }
+    
+    $conn->close();
+    exit; // IMPORTANT: Stop the script here so the router doesn't add more output
+}
